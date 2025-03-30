@@ -1,8 +1,9 @@
 name: Test Application
 on: 
   pull_request:
-    - master
-    - develop
+    branches:
+      - master
+      - develop
 jobs:
   test-app:
     runs-on: ubuntu-latest
@@ -10,7 +11,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4      
       - uses: actions/setup-node@v4
-        working-directory: ./app
         with:
           node-version: 23.10.0
       - run: npm ci
