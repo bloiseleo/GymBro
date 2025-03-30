@@ -10,7 +10,10 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4      
       - uses: actions/setup-node@v4
+        working-directory: ./app
         with:
-          node-version: 18
+          node-version: 23.10.0
       - run: npm ci
+        working-directory: ./app
       - run: npm test
+        working-directory: ./app
