@@ -1,0 +1,9 @@
+export const iconColor = '#3f3e44';
+export const inputBackground = '#18171c';
+export const inputTextColor = '#FFFFFF';
+export const inputBorderColor = '#2f2e32';
+export const appBackground = '#09090B';
+export const placeHolderColor = '#9e9da2';
+export const errorColor = '#F94141';
+export const backgroundErrorColor = '#310B0B';
+export const disabledButtonColor = '#B8B8B8';
