@@ -1,4 +1,4 @@
-name: Test Backend Application
+name: Test Back-end Application
 on:
     pull_request:
         branches:
