@@ -1,8 +1,8 @@
-import { useReducer, useState } from "react"
-import { FormAction, FormActionChange, FormActions, FormInitialState, FormState, FormActionSubmit, OnSubmit } from "./types";
+import { useMemo, useReducer, useState } from "react"
+import { FormAction, FormActionChange, FormActions, FormInitialState, FormState, FormActionSubmit, OnSubmit, FormInitialEntry } from "./types";
 import { changeAction, checkFormStatus, submitAction } from "./actions";
 
-const formReducer = (current: FormState, action: FormAction<any>) => {
+const formReducer = <T>(current: FormState<T>, action: FormAction<any>) => {
     switch(action.constructor) {
         case FormActionChange:
             return changeAction(action, current);
@@ -13,8 +13,8 @@ const formReducer = (current: FormState, action: FormAction<any>) => {
     }
 }
 
-const createState = (initial: FormInitialState): FormState => {
-    const data: FormState = {}
+const createState = <T>(initial: FormInitialState<T>): FormState<T> => {
+    const data: FormState<T> = {} as FormState<T>;
     for(let prop in initial) {
         const { validations, value } = initial[prop];
         data[prop] = {
@@ -29,26 +29,37 @@ const createState = (initial: FormInitialState): FormState => {
     return data;
 }
 
-export function useForm(form: FormInitialState) {
-    const [formState, dispatch] = useReducer(formReducer, createState(form));
-    const onChangeFactory = (field: string) => {
+
+export function useForm<T>(form: FormInitialState<T>) {
+    const formData = useMemo(() => createState(form), [form]);
+
+    const [formState, dispatch] = useReducer<React.Reducer<FormState<T>, FormAction<any>>>(
+        formReducer,
+        formData
+    );
+
+    const onChangeFactory = (field: keyof T) => {
         return (value: unknown) => {
             dispatch(new FormActionChange({
                 value,
-                field
-            }))
-        }
-    }
+                field: field as string
+            }));
+        };
+    };
+
     const onSubmit = (submit: OnSubmit) => {
-        dispatch(new FormActionSubmit(submit))
-    }
+        dispatch(new FormActionSubmit(submit));
+    };
+
     const getFormStatus = () => {
         return checkFormStatus(formState);
-    }
+    };
+
     return {
         onChangeFactory,
         formState,
         onSubmit,
         getFormStatus
-    }
+    };
 }
+

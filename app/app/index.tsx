@@ -8,8 +8,8 @@ export default function RegisterPage() {
     const [loading, setLoading] = useState(false);
     const { formState: {
             username,
-            password,
-            confirmPassword
+            confirmPassword,
+            password
         }, onChangeFactory, onSubmit, getFormStatus } = useForm({
             username: {
                 validations: [

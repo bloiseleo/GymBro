@@ -1,11 +1,12 @@
-export type FormInitialState = {
-    [key: string]: {
-        value: unknown,
-        validations: ValidationFunction[],
-    }
+export type FormInitialEntry = {
+    value: unknown,
+    validations: ValidationFunction[],
+}
+export type FormInitialState<T> = {
+    [K in keyof T]: FormInitialEntry
 }
 
-export type ValidationFunction = (value: unknown, formData: FormState) => string | undefined;
+export type ValidationFunction = <T>(value: unknown, formData: FormState<T>) => string | undefined;
 
 export type FormEntry = {
     value: unknown,
@@ -18,8 +19,8 @@ export type FormEntry = {
 
 export type FormStatus = 'valid' | 'error';
 
-export type FormState = {
-    [key: string]: FormEntry,
+export type FormState<T> = {
+    [K in keyof T]: FormEntry;
 }
 
 export enum FormActions {
