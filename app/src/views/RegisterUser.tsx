@@ -1,11 +1,9 @@
-import { Button, View } from "react-native"
+import { View } from "react-native"
 import { SafeAreaViewThemed } from "../components/SafeAreaViewThemed"
 import { Title } from "../components/Title"
 import { Subtitle } from "../components/Subtitle"
 import { UserIcon } from "../components/UserIcon"
 import { TextInputThemed } from "../components/TextInputThemed"
-import { useForm } from "../hooks/useForm"
-import { required } from "../hooks/useForm/validations"
 import { FormEntry, FormStatus } from "../hooks/useForm/types"
 import { ButtonThemed } from "../components/ButtonThemed"
 
