@@ -14,5 +14,5 @@ jobs:
               with:
                 distribution: 'temurin'
                 java-version: '21'
-            - run: sudo ./gradlew test
+            - run: sudo gradle test
               working-directory: ./api
