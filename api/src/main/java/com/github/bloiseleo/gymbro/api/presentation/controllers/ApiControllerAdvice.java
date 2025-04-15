@@ -1,6 +1,7 @@
 package com.github.bloiseleo.gymbro.api.presentation.controllers;
 
 import com.github.bloiseleo.gymbro.api.application.exceptions.ApplicationException;
+import com.github.bloiseleo.gymbro.api.application.exceptions.UsernameAlreadyTaken;
 import com.github.bloiseleo.gymbro.api.presentation.dto.output.APIResponse;
 import com.github.bloiseleo.gymbro.api.presentation.dto.output.APIResponses;
 import com.github.bloiseleo.gymbro.api.presentation.dto.output.FieldErrorAPIResponse;
@@ -32,6 +33,14 @@ public class ApiControllerAdvice {
     public APIResponse handleException(Exception ex) {
         log.error(ex.getMessage(), ex);
         return APIResponses.internalServerError("Internal Server Error");
+    }
+    @ExceptionHandler(UsernameAlreadyTaken.class)
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    public APIResponse handleUsernameAlreadyTaken(UsernameAlreadyTaken exception) {
+        log.error(exception.getMessage(), exception);
+        Map<String, String> errors = new HashMap<>();
+        errors.put("username", exception.getMessage());
+        return new FieldErrorAPIResponse(errors);
     }
     @ExceptionHandler(ApplicationException.class)
     public ResponseEntity handleApplicationException(ApplicationException ex) {

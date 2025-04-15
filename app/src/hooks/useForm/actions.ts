@@ -1,38 +1,38 @@
-import { measure } from "react-native-reanimated";
-import { FormActionChange, FormActionSubmit, FormEntry, FormState, FormStatus } from "./types";
+import { FormActionChange, FormActionSetError, FormActionSubmit, FormEntry, FormEntryError, FormState, FormStatus } from "./types";
 
-const applyAllValidations = (formEntry: FormEntry, formData: FormState) => {
-    const errorData: {
-        hasError: boolean,
-        message: string;
-    } = {
+const applyAllValidations = <T>(formEntry: FormEntry, formData: FormState<T>) => {
+    const errorData: FormEntryError = {
         hasError: false,
-        message: ''
+        message: '',
+        kind: 'normal'
     }
-    formEntry.validations.forEach((curr) => {
+    const newFormEntry = { ...formEntry };
+    newFormEntry.validations.forEach((curr) => {
         if(errorData.hasError) return;
-        const message = curr(formEntry.value, formData);
+        const message = curr(newFormEntry.value, formData);
         errorData.hasError = Boolean(message);
         errorData.message = message ?? '';
     }); 
-    formEntry.error = errorData;
-    return formEntry;
+    newFormEntry.error = errorData;
+    return newFormEntry;
 }
 
-export const submitAction = (action: FormActionSubmit, current: FormState) => {
+export type FormValues<T> = {
+    [K in keyof T]: unknown
+}
+
+export const submitAction = <T>(action: FormActionSubmit<T>, current: FormState<T>) => {
     const newFormState = { ...current };
-    let submitData: {
-        [key: string]: unknown
-    } = {};
+    let submitData: FormValues<T> = {} as FormValues<T>;
     let hasError = false;
     for(let entryName in current) {
         const entry = current[entryName];
-        applyAllValidations(entry, current);
-        newFormState[entryName] = entry;
+        const newEntry = applyAllValidations(entry, current);
+        newFormState[entryName] = newEntry;
         if(!hasError) {
-            hasError = entry.error.hasError;
+            hasError = newEntry.error.hasError;
         }
-        submitData[entryName] = entry.value;
+        submitData[entryName] = newEntry.value;
     }
     if(hasError) return newFormState;
     const { data } = action;
@@ -40,12 +40,19 @@ export const submitAction = (action: FormActionSubmit, current: FormState) => {
     return newFormState;
 }
 
-export const checkFormStatus = (current: FormState) => {
+export const checkFormStatus = <T>(current: FormState<T>) => {
     let status: FormStatus = 'valid';
     for(let entryName in current) {
         const entry = current[entryName];
-        applyAllValidations(entry, current);
-        if(entry.error.hasError && status === 'valid') {
+        if((entry.error.hasError && entry.error.kind === 'server'))  {
+            status = 'error';
+            break;
+        }
+        if(!entry.touched) continue;
+        const newEntry = applyAllValidations(entry, current);
+        current[entryName] = newEntry
+        const { error: { hasError } } = newEntry;
+        if(hasError && status === 'valid') {
             status = 'error';
             break;
         }        
@@ -53,13 +60,27 @@ export const checkFormStatus = (current: FormState) => {
     return status;
 }
 
-export const changeAction = (action: FormActionChange, current: FormState) => {
+export const changeAction = <T>(action: FormActionChange, current: FormState<T>) => {
     const { data: { value, field } } = action;
     const newFormState = { ...current };
-    const formEntry = {...newFormState[field]};
+    const formEntry = {...newFormState[field as keyof T]};
     if(!formEntry) throw new Error(`field [${field}] does not exists in form`);
     formEntry.value = value;
-    applyAllValidations(formEntry, current)
-    newFormState[field] = formEntry;
+    formEntry.touched = true;
+    const newEntry = applyAllValidations(formEntry, current)
+    newFormState[field as keyof T] = newEntry;
+    return newFormState;
+}
+
+export const setErrorAction = <T>(action: FormActionSetError, current: FormState<T>) => {
+    const { data: { value, field } } = action;
+    const newFormState = { ...current };
+    const formEntry = {...newFormState[field as keyof T]};
+    if(!formEntry) throw new Error(`field [${field}] does not exists in form`);
+    formEntry.touched = true;
+    formEntry.error.hasError = true;
+    formEntry.error.message = value as string;
+    formEntry.error.kind = 'server';
+    newFormState[field as keyof T] = formEntry;
     return newFormState;
 }

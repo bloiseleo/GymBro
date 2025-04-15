@@ -1,6 +1,6 @@
 import { useMemo, useReducer, useState } from "react"
-import { FormAction, FormActionChange, FormActions, FormInitialState, FormState, FormActionSubmit, OnSubmit, FormInitialEntry } from "./types";
-import { changeAction, checkFormStatus, submitAction } from "./actions";
+import { FormAction, FormActionChange, FormActions, FormInitialState, FormState, FormActionSubmit, OnSubmit, FormInitialEntry, FormActionSetError } from "./types";
+import { changeAction, checkFormStatus, setErrorAction, submitAction } from "./actions";
 
 const formReducer = <T>(current: FormState<T>, action: FormAction<any>) => {
     switch(action.constructor) {
@@ -8,6 +8,8 @@ const formReducer = <T>(current: FormState<T>, action: FormAction<any>) => {
             return changeAction(action, current);
         case FormActionSubmit:
             return submitAction(action, current);
+        case FormActionSetError:
+            return setErrorAction(action, current);
         default:
             throw new Error(`action of type [${action.constructor.name}] was not recognized`)
     }
@@ -20,7 +22,8 @@ const createState = <T>(initial: FormInitialState<T>): FormState<T> => {
         data[prop] = {
             error: {
                 message: '',
-                hasError: false
+                hasError: false,
+                kind: 'normal'
             },
             validations,
             value
@@ -47,19 +50,29 @@ export function useForm<T>(form: FormInitialState<T>) {
         };
     };
 
-    const onSubmit = (submit: OnSubmit) => {
+    const setErrorFactory = (field: keyof T) => {
+        return (value: unknown) => {        
+            dispatch(new FormActionSetError({
+                value,
+                field: field as string
+            }))
+        }
+    }
+
+    const onSubmit = (submit: OnSubmit<T>) => {
         dispatch(new FormActionSubmit(submit));
     };
 
-    const getFormStatus = () => {
+    const status = useMemo(() => { 
         return checkFormStatus(formState);
-    };
+    }, [formState]);
 
     return {
         onChangeFactory,
+        setErrorFactory,
         formState,
         onSubmit,
-        getFormStatus
+        status
     };
 }
 
