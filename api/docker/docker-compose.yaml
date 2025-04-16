@@ -1,0 +1,9 @@
+services:
+  database:
+    image: postgres
+    environment:
+      POSTGRES_DB: gymbro
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5432:5432" 

@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: api
+  datasource:
+    url: jdbc:postgresql://localhost:5432/gymbro
+    username: root
+    password: root
+  main:
+    banner-mode: off
+jwt:
+  issuer: GymBroAPI
+  secret: secret
